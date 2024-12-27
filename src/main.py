@@ -81,17 +81,23 @@ def main(context):
             return context.res.text("Pong")
 
         elif path == "/search":
-            # Handle search requests
-            body = json.loads(context.req.body)  # FIXED JSON Parsing
+            if not context.req.body:
+                raise ValueError("Empty request body")
+
+            try:
+                body = json.loads(context.req.body)
+            except json.JSONDecodeError as json_err:
+                raise ValueError(f"Invalid JSON format: {str(json_err)}")
+
             search_query = body.get("query", "Appwrite integration with Selenium")
 
             # Perform Google search
             search_result = perform_google_search(search_query)
 
             if search_result["status"] == "success":
-                return context.res.json(search_result, code=200)
+                return context.res.json(search_result, 200)
             else:
-                return context.res.json(search_result, code=500)
+                return context.res.json(search_result, 500)
 
         else:
             # Default response
@@ -102,9 +108,9 @@ def main(context):
                     "connect": "https://appwrite.io/discord",
                     "getInspired": "https://builtwith.appwrite.io",
                 },
-                code=200
+                200
             )
 
     except Exception as e:
         context.error("Search Error: " + str(e))
-        return context.res.json({"status": "error", "message": str(e)}, code=500)
+        return context.res.json({"status": "error", "message": str(e)}, 500)
