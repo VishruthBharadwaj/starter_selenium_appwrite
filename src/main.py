@@ -25,7 +25,17 @@ def perform_google_search(query):
         chrome_options.add_argument("--disable-dev-shm-usage")
 
         # Initialize WebDriver
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        #driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        import shutil
+
+        # Force ChromeDriver path and check permissions
+        chromedriver_path = "/root/.wdm/drivers/chromedriver/linux64/114.0.5735.90/chromedriver"
+        
+        if not shutil.which(chromedriver_path):
+            raise FileNotFoundError(f"ChromeDriver not found at {chromedriver_path}")
+        
+        driver = webdriver.Chrome(service=Service(chromedriver_path), options=chrome_options)
+
 
         # Perform Google Search
         driver.get("https://www.google.com")
