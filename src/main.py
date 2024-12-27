@@ -78,14 +78,14 @@ def main(context):
 
         if path == "/ping":
             # Respond to ping requests
-            return context.res.text("Pong")
+            return context.res.text("Pong", 200)  # Added status code as positional argument
 
         elif path == "/search":
             if not context.req.body:
                 raise ValueError("Empty request body")
 
             try:
-                body = json.loads(context.req.body)
+                body = json.loads(context.req.body)  # Correct JSON parsing
             except json.JSONDecodeError as json_err:
                 raise ValueError(f"Invalid JSON format: {str(json_err)}")
 
@@ -95,9 +95,9 @@ def main(context):
             search_result = perform_google_search(search_query)
 
             if search_result["status"] == "success":
-                return context.res.json(search_result, 200)
+                return context.res.json(search_result, 200)  # Positional status code
             else:
-                return context.res.json(search_result, 500)
+                return context.res.json(search_result, 500)  # Positional status code
 
         else:
             # Default response
@@ -108,9 +108,9 @@ def main(context):
                     "connect": "https://appwrite.io/discord",
                     "getInspired": "https://builtwith.appwrite.io",
                 },
-                200
+                200  # Positional status code
             )
 
     except Exception as e:
         context.error("Search Error: " + str(e))
-        return context.res.json({"status": "error", "message": str(e)}, 500)
+        return context.res.json({"status": "error", "message": str(e)}, 500)  # Positional status code
