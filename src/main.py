@@ -20,30 +20,20 @@ def perform_google_search(query):
     try:
         # Set up headless Chrome options
         chrome_options = Options()
-        chrome_options.add_argument("--headless")  # Run in headless mode
+        chrome_options.add_argument("--headless")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--disable-gpu")
-        chrome_options.add_argument("--window-size=1920,1080")
-        chrome_options.add_argument("--disable-extensions")
-        chrome_options.add_argument("--proxy-server='direct://'")
-        chrome_options.add_argument("--proxy-bypass-list=*")
-        chrome_options.add_argument("--start-maximized")
-        chrome_options.add_argument("--disable-dev-tools")
-        chrome_options.add_argument("--log-level=3")
 
         # Initialize WebDriver
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
-        # Navigate to Google
+        # Perform Google Search
         driver.get("https://www.google.com")
-
-        # Locate the search box, enter query, and submit
         search_box = driver.find_element(By.NAME, "q")
         search_box.send_keys(query)
         search_box.submit()
 
-        # Extract the title of the first result
+        # Extract the first result title
         first_result = driver.find_element(By.CSS_SELECTOR, "h3")
         result_title = first_result.text
 
@@ -59,7 +49,6 @@ def perform_google_search(query):
             "status": "error",
             "message": str(e)
         }
-
     finally:
         if driver:
             driver.quit()
@@ -75,14 +64,14 @@ def main(context):
     )
     users = Users(client)
 
-    # Log total users (optional)
+    # Log total users (Optional)
     try:
         response = users.list()
         context.log("Total users: " + str(response["total"]))
     except AppwriteException as err:
         context.error("Could not list users: " + repr(err))
 
-    # Handle request
+    # Handle Request
     try:
         path = context.req.path
         method = context.req.method
@@ -100,7 +89,7 @@ def main(context):
             search_result = perform_google_search(search_query)
 
             if search_result["status"] == "success":
-                return context.res.json(search_result, code=200)  # FIXED Response Code
+                return context.res.json(search_result, code=200)
             else:
                 return context.res.json(search_result, code=500)
 
@@ -118,4 +107,4 @@ def main(context):
 
     except Exception as e:
         context.error("Search Error: " + str(e))
-        return context.res.json({"status": "error", "message": str(e)}, code=500)  # FIXED Response Code
+        return context.res.json({"status": "error", "message": str(e)}, code=500)
