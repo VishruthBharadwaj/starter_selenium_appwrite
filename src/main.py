@@ -16,6 +16,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger()
 
 def perform_google_search(query):
+    driver = None
     try:
         # Set up headless Chrome options
         chrome_options = Options()
@@ -42,15 +43,9 @@ def perform_google_search(query):
         search_box.send_keys(query)
         search_box.submit()
 
-        # Wait for results to load
-        driver.implicitly_wait(5)
-
         # Extract the title of the first result
         first_result = driver.find_element(By.CSS_SELECTOR, "h3")
         result_title = first_result.text
-
-        # Close the browser
-        driver.quit()
 
         return {
             "status": "success",
@@ -65,7 +60,11 @@ def perform_google_search(query):
             "message": str(e)
         }
 
-# This Appwrite function will be executed every time your function is triggered
+    finally:
+        if driver:
+            driver.quit()
+
+# Main function
 def main(context):
     # Initialize Appwrite Client
     client = (
@@ -76,47 +75,47 @@ def main(context):
     )
     users = Users(client)
 
+    # Log total users (optional)
     try:
         response = users.list()
-        # Log messages to the Appwrite Console
         context.log("Total users: " + str(response["total"]))
     except AppwriteException as err:
         context.error("Could not list users: " + repr(err))
 
-    # The req object contains the request data
-    if context.req.path == "/ping":
-        # Respond with "Pong" for ping requests
-        return context.res.text("Pong")
+    # Handle request
+    try:
+        path = context.req.path
+        method = context.req.method
 
-    elif context.req.path == "/search":
-        # Handle search requests
-        try:
-            # Extract search query from request body or query parameters
-            if context.req.method == "POST":
-                body = context.req.json
-                search_query = body.get("query", "Appwrite integration with Selenium")
-            else:
-                search_query = context.req.get("query", "Appwrite integration with Selenium")
+        if path == "/ping":
+            # Respond to ping requests
+            return context.res.text("Pong")
 
-            # Perform Google search using Selenium
+        elif path == "/search":
+            # Handle search requests
+            body = json.loads(context.req.body)  # FIXED JSON Parsing
+            search_query = body.get("query", "Appwrite integration with Selenium")
+
+            # Perform Google search
             search_result = perform_google_search(search_query)
 
             if search_result["status"] == "success":
-                return context.res.json(search_result)
+                return context.res.json(search_result, code=200)  # FIXED Response Code
             else:
-                return context.res.json(search_result, status=500)
+                return context.res.json(search_result, code=500)
 
-        except Exception as e:
-            context.error("Search Error: " + str(e))
-            return context.res.json({"status": "error", "message": str(e)}, status=500)
+        else:
+            # Default response
+            return context.res.json(
+                {
+                    "motto": "Build like a team of hundreds.",
+                    "learn": "https://appwrite.io/docs",
+                    "connect": "https://appwrite.io/discord",
+                    "getInspired": "https://builtwith.appwrite.io",
+                },
+                code=200
+            )
 
-    else:
-        # Default response for other paths
-        return context.res.json(
-            {
-                "motto": "Build like a team of hundreds.",
-                "learn": "https://appwrite.io/docs",
-                "connect": "https://appwrite.io/discord",
-                "getInspired": "https://builtwith.appwrite.io",
-            }
-        )
+    except Exception as e:
+        context.error("Search Error: " + str(e))
+        return context.res.json({"status": "error", "message": str(e)}, code=500)  # FIXED Response Code
