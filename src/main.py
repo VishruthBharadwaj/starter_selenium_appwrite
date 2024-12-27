@@ -64,12 +64,7 @@ def main(context):
     )
     users = Users(client)
 
-    # Log total users (Optional)
-    try:
-        response = users.list()
-        context.log("Total users: " + str(response["total"]))
-    except AppwriteException as err:
-        context.error("Could not list users: " + repr(err))
+    
 
     # Handle Request
     try:
