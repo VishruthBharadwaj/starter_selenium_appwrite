@@ -14,6 +14,18 @@ from webdriver_manager.chrome import ChromeDriverManager
 # Configure logging
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger()
+# Set Chrome options
+chrome_options = Options()
+chrome_options.add_argument("--headless")
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--disable-dev-shm-usage")
+
+# Explicitly set binary locations for Chromium and ChromeDriver
+chrome_options.binary_location = "/usr/bin/chromium"
+service = Service("/usr/bin/chromedriver")
+
+# Initialize the driver
+driver = webdriver.Chrome(service=service, options=chrome_options)
 
 def perform_google_search(query):
     driver = None
@@ -23,19 +35,6 @@ def perform_google_search(query):
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
-
-        # Initialize WebDriver
-        #driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
-        import shutil
-
-        # Force ChromeDriver path and check permissions
-        chromedriver_path = "/root/.wdm/drivers/chromedriver/linux64/114.0.5735.90/chromedriver"
-        
-        if not shutil.which(chromedriver_path):
-            raise FileNotFoundError(f"ChromeDriver not found at {chromedriver_path}")
-        
-        driver = webdriver.Chrome(service=Service(chromedriver_path), options=chrome_options)
-
 
         # Perform Google Search
         driver.get("https://www.google.com")
